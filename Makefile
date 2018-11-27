@@ -1,13 +1,10 @@
-install: install-deps install-flow-typed
+install: install-deps
 
 develop:
-	npm run webpack-dev-server
+	npx webpack-dev-server --open
 
 install-deps:
 	npm install
-
-install-flow-typed:
-	npm run flow-typed install
 
 build:
 	rm -rf dist
@@ -16,11 +13,8 @@ build:
 test:
 	npm test
 
-check-types:
-	npm run flow
-
 lint:
-	npm run eslint .
+	npx run eslint .
 
 publish:
 	npm publish
