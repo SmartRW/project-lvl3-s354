@@ -16,44 +16,24 @@ function State() {
   this.message = this.initialMessage;
   this.feeds = [];
 
-  this.switchToValid = (message) => {
+  this.switchStateTo = (stateName, message = this.initialMessage) => {
     this.message = message;
-    this.input.state = this.inputStates.valid;
-  };
-
-  this.switchToInvalid = (message) => {
-    this.message = message;
-    this.input.state = this.inputStates.invalid;
-  };
-
-  this.switchToFailed = (message) => {
-    this.message = message;
-    this.input.state = this.inputStates.failed;
-  };
-
-  this.switchToPending = (message = this.initialMessage) => {
-    this.message = message;
-    this.input.state = this.inputStates.pending;
-  };
-
-  this.switchToLoading = (message) => {
-    this.message = message;
-    this.input.state = this.inputStates.loading;
+    this.input.state = this.inputStates[stateName];
   };
 
   this.validate = (url) => {
     if (!url) {
-      this.switchToPending();
+      this.switchStateTo(this.inputStates.pending);
     } else if (isUrlValid(url, this.feeds)) {
-      this.switchToValid('Ok, let\'s try!');
+      this.switchStateTo(this.inputStates.valid, 'Ok, let\'s try!');
     } else {
-      this.switchToInvalid('Link must be valid URL');
+      this.switchStateTo(this.inputStates.invalid, 'Link must be valid URL');
     }
   };
 }
 
 export const addFeed = (proxy, url, state) => {
-  const promise = new Promise(resolve => resolve(state.switchToLoading('Please wait...')));
+  const promise = new Promise(resolve => resolve(state.switchStateTo(state.inputStates.loading, 'Please wait...')));
   return promise
     .then(() => axios.get(`${proxy}${url}`))
     .then((response) => {
@@ -76,10 +56,10 @@ export const addFeed = (proxy, url, state) => {
         articles.push({ articleTitle, articleLink, articleContent });
       });
       state.feeds.push({ url, title, articles });
-      state.switchToPending();
+      state.switchStateTo(state.inputStates.pending);
     })
     .catch((error) => {
-      state.switchToFailed(error);
+      state.switchStateTo(state.inputStates.failed, error);
     });
 };
 
