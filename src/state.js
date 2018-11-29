@@ -19,7 +19,8 @@ export const addFeed = (proxy, url, state) => axios.get(`${proxy}${url}`)
     articlesData.forEach((data) => {
       const articleTitle = data.querySelector('title').textContent;
       const articleLink = data.querySelector('link').textContent;
-      articles.push({ articleTitle, articleLink });
+      const articleContent = data.querySelector('description').textContent;
+      articles.push({ articleTitle, articleLink, articleContent });
     });
     state.feeds.push({ url, title, articles });
   })

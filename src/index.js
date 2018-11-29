@@ -3,16 +3,21 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { watch } from 'melanke-watchjs';
 import { initState, addFeed } from './state';
 import isUrlValid from './validator';
-import render from './renderer';
+import { renderForm, renderTitles, renderArticles } from './renderer';
 
 const input = document.getElementById('rss-url');
 const submit = document.getElementById('submit-button');
 const CORSproxy = 'https://cors-anywhere.herokuapp.com/';
 const state = initState();
-render(state);
+renderForm(state);
 
-watch(state, () => {
-  render(state);
+watch(state.urlInput, () => {
+  renderForm(state);
+});
+
+watch(state.feeds, () => {
+  renderTitles(state);
+  renderArticles(state);
 });
 
 input.addEventListener('input', (e) => {

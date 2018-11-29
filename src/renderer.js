@@ -7,7 +7,7 @@ const articlesList = articlesContainer.querySelector('ul');
 const titleTemplate = document.getElementById('feed-template').content;
 const articleTemplate = document.getElementById('article-template').content;
 
-const renderForm = (state) => {
+export const renderForm = (state) => {
   switch (state.urlInput.valid) {
     case true:
       input.classList.remove('is-invalid');
@@ -35,7 +35,7 @@ const renderForm = (state) => {
   }
 };
 
-const renderTitles = (state) => {
+export const renderTitles = (state) => {
   titlesList.innerHTML = '';
   const titles = state.feeds
     .reduce((acc, feed) => [...acc, feed.title], []);
@@ -45,9 +45,13 @@ const renderTitles = (state) => {
     listItem.textContent = title;
     titlesList.appendChild(node);
   });
+  if (state.feeds.length > 0) {
+    titlesContainer.classList.remove('invisible');
+    articlesContainer.classList.remove('invisible');
+  }
 };
 
-const renderArticles = (state) => {
+export const renderArticles = (state) => {
   articlesList.innerHTML = '';
   const articles = state.feeds
     .reduce((acc, feed) => [...acc, ...feed.articles], []);
@@ -60,12 +64,12 @@ const renderArticles = (state) => {
   });
 };
 
-export default (state) => {
-  renderForm(state);
-  renderTitles(state);
-  renderArticles(state);
-  if (state.feeds.length > 0) {
-    titlesContainer.classList.remove('invisible');
-    articlesContainer.classList.remove('invisible');
-  }
-};
+// const renderModals = (state) => {
+//
+// };
+
+// export default (state) => {
+//   renderForm(state);
+//   renderTitles(state);
+//   renderArticles(state);
+// };
