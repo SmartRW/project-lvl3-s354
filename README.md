@@ -4,4 +4,4 @@
 
 [![Build Status](https://travis-ci.org/SmartRW/project-lvl3-s354.svg?branch=master)](https://travis-ci.org/SmartRW/project-lvl3-s354)
 
-http://horrible-sail.surge.sh/
+http://horrible-sail.surge.sh
