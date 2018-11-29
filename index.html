@@ -5,12 +5,28 @@
     <title>RSS-Reader</title>
   </head>
   <body>
+    <template id="feed-template">
+      <li class="list-group-item"></li>
+    </template>
+    <template id="article-template">
+      <div class="card mb-2">
+        <div class="card-body">
+          <a href="" id="article-link">
+            <h5 class="card-title">Card title</h5>
+          </a>
+          <a href="#" class="btn btn-primary" data-toggle="modal" data-target="">Read article</a>
+        </div>
+      </div>
+    </template>
+    <template id="modalTemplate">
+
+    </template>
     <div class="jumbotron">
       <h1 class="display-4">RSS-Reader</h1>
-      <form class="form-inline">
+      <form class="form">
         <div class="form-group">
-          <label class="mr-4" for="rss-url">RSS source</label>
           <input class="form-control mr-4" id="rss-url" type="text" placeholder="link">
+          <small id="input-message" class="form-text text-muted"></small>
         </div>
         <button class="btn btn-primary" id="submit-button" type="submit">Submit</button>
       </form>
@@ -19,17 +35,9 @@
       <h2 class="display-6">Feeds</h2>
       <ul class="list-group"></ul>
     </div>
-    <div class="container invisible" id="articles">      
+    <div class="container invisible" id="articles">
       <h2 class="display-6">Articles</h2>
       <ul class="list-group"></ul>
     </div>
-    <template id="feed-template">
-      <li class="list-group-item"></li>
-    </template>
-    <template id="article-template">
-      <li class="list-group-item">
-        <a href=""></a>
-      </li>
-    </template>
   </body>
 </html>

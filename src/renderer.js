@@ -1,41 +1,52 @@
-const input = document.getElementById('rss-url');
-const submit = document.getElementById('submit-button');
-const titlesContainer = document.getElementById('feeds');
-const titlesList = titlesContainer.querySelector('ul');
-const articlesContainer = document.getElementById('articles');
-const articlesList = articlesContainer.querySelector('ul');
-const titleTemplate = document.getElementById('feed-template').content;
-const articleTemplate = document.getElementById('article-template').content;
-
-export const renderForm = (state) => {
-  switch (state.urlInput.valid) {
-    case true:
+const getRenderFormAction = () => {
+  const input = document.getElementById('rss-url');
+  const submit = document.getElementById('submit-button');
+  return {
+    valid: () => {
       input.classList.remove('is-invalid');
       input.classList.add('is-valid');
-      break;
-    case false:
+      input.disabled = false;
+      submit.disabled = false;
+    },
+    invalid: () => {
       input.classList.remove('is-valid');
       input.classList.add('is-invalid');
-      break;
-    default:
+      input.disabled = false;
+      submit.disabled = true;
+    },
+    loading: () => {
+      input.classList.remove('is-invalid');
+      input.classList.remove('is-valid');
+      input.disabled = true;
+      submit.disabled = true;
+    },
+    failed: () => {
+      input.classList.remove('is-valid');
+      input.classList.add('is-invalid');
+      input.disabled = false;
+      submit.disabled = false;
+    },
+    pending: () => {
       input.classList.remove('is-invalid');
       input.classList.remove('is-valid');
       input.value = '';
-      break;
-  }
-  switch (state.urlInput.submitEnabled) {
-    case true:
-      submit.disabled = false;
-      break;
-    case false:
+      input.disabled = false;
       submit.disabled = true;
-      break;
-    default:
-      submit.disabled = false;
-  }
+    },
+  };
+};
+
+export const renderForm = (state) => {
+  const stateType = state.input.state;
+  const message = document.getElementById('input-message');
+  getRenderFormAction()[stateType]();
+  message.textContent = state.message;
 };
 
 export const renderTitles = (state) => {
+  const titlesContainer = document.getElementById('feeds');
+  const titlesList = titlesContainer.querySelector('ul');
+  const titleTemplate = document.getElementById('feed-template').content;
   titlesList.innerHTML = '';
   const titles = state.feeds
     .reduce((acc, feed) => [...acc, feed.title], []);
@@ -47,29 +58,25 @@ export const renderTitles = (state) => {
   });
   if (state.feeds.length > 0) {
     titlesContainer.classList.remove('invisible');
-    articlesContainer.classList.remove('invisible');
   }
 };
 
 export const renderArticles = (state) => {
+  const articlesContainer = document.getElementById('articles');
+  const articlesList = articlesContainer.querySelector('ul');
+  const articleTemplate = document.getElementById('article-template').content;
   articlesList.innerHTML = '';
   const articles = state.feeds
     .reduce((acc, feed) => [...acc, ...feed.articles], []);
   articles.forEach((article) => {
     const node = articleTemplate.cloneNode(true);
-    const link = node.querySelector('a');
-    link.textContent = article.articleTitle;
+    const link = node.getElementById('article-link');
+    const text = node.querySelector('.card-title');
+    text.textContent = article.articleTitle;
     link.href = article.articleLink;
     articlesList.appendChild(node);
   });
+  if (state.feeds.length > 0) {
+    articlesContainer.classList.remove('invisible');
+  }
 };
-
-// const renderModals = (state) => {
-//
-// };
-
-// export default (state) => {
-//   renderForm(state);
-//   renderTitles(state);
-//   renderArticles(state);
-// };
