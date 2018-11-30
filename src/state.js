@@ -11,6 +11,10 @@ function State() {
   this.input = { state: this.inputStates.pending };
   this.message = 'Add RSS feed URL';
   this.feeds = [];
+  this.modal = {
+    title: '',
+    content: '',
+  };
 }
 
 export const initState = () => new State();

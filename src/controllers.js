@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { uniqueId } from 'lodash';
 import isUrlValid from './validator';
 import { inputStates } from './state';
 
@@ -31,7 +32,9 @@ const rssDataHandler = (rssData, state, url) => {
     const articleTitle = data.querySelector('title').textContent;
     const articleLink = data.querySelector('link').textContent;
     const articleContent = data.querySelector('description').textContent;
-    articles.push({ articleTitle, articleLink, articleContent });
+    articles.push({
+      articleTitle, articleLink, articleContent, id: uniqueId('article'),
+    });
   });
   state.feeds.push({ url, title, articles });
 };
@@ -55,8 +58,6 @@ export const addFeed = (proxy, url, state) => new Promise(resolve => resolve(swi
 export const initControllers = (state) => {
   const input = document.getElementById('rss-url');
   const submit = document.getElementById('submit-button');
-  const articleButtons = document.querySelectorAll('button[data-toggle="modal"]');
-  console.log(articleButtons);
 
   input.addEventListener('input', (e) => {
     validate(state, e.target.value);
@@ -65,5 +66,21 @@ export const initControllers = (state) => {
   submit.addEventListener('click', (e) => {
     e.preventDefault();
     addFeed(CORSproxy, input.value, state);
+  });
+};
+
+export const initArticlesButtonsControllers = (state) => {
+  const articleButtons = document.querySelectorAll('button[data-toggle="modal"]');
+  articleButtons.forEach((button) => {
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      console.dir(e.target);
+      const articleId = e.target.dataset.id;
+      const article = state.feeds
+        .reduce((acc, feed) => [...acc, ...feed.articles], [])
+        .filter(item => item.id === articleId)[0];
+      state.modal.title = article.articleTitle; // eslint-disable-line no-param-reassign
+      state.modal.content = article.articleContent; // eslint-disable-line no-param-reassign
+    });
   });
 };

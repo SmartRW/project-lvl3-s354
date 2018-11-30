@@ -70,8 +70,10 @@ export const renderArticles = (state) => {
     .reduce((acc, feed) => [...acc, ...feed.articles], []);
   articles.forEach((article) => {
     const node = articleTemplate.cloneNode(true);
-    const link = node.getElementById('article-link');
+    const link = node.querySelector('.article-link');
     const text = node.querySelector('.card-title');
+    const button = node.querySelector('button[data-toggle="modal"]');
+    button.dataset.id = article.id;
     text.textContent = article.articleTitle;
     link.href = article.articleLink;
     articlesList.appendChild(node);
@@ -79,4 +81,11 @@ export const renderArticles = (state) => {
   if (state.feeds.length > 0) {
     articlesContainer.classList.remove('invisible');
   }
+};
+
+export const renderModal = (state) => {
+  const title = document.getElementById('modal-title');
+  const content = document.getElementById('modal-body');
+  title.textContent = state.modal.title;
+  content.textContent = state.modal.content;
 };
