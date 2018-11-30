@@ -37,17 +37,15 @@ export const addFeed = (proxy, url, state) => {
   return promise
     .then(() => axios.get(`${proxy}${url}`))
     .then(
-      (response) => {
-        if (response.headers['content-type'] !== 'application/rss+xml') {
-          throw new Error('This source contains no RSS-feed');
-        }
-        return parser.parseFromString(response.data, 'application/xml');
-      },
+      response => parser.parseFromString(response.data, 'application/xml'),
       () => {
         throw new Error('Server is not responding. It may be dead, as well as your connection');
       },
     )
     .then((rssData) => {
+      if (!rssData.querySelector('rss')) {
+        throw new Error('This source contains no RSS-feed');
+      }
       const title = rssData.querySelector('title').textContent;
       const articles = [];
       const articlesData = rssData.querySelectorAll('item');
