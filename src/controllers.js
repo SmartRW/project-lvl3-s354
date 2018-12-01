@@ -1,71 +1,78 @@
 import axios from 'axios';
 import { uniqueId } from 'lodash';
-import isUrlValid from './validator';
+import isURL from 'validator/lib/isURL';
 import { inputStates } from './state';
+import parse from './parser';
 
-const CORSproxy = 'https://cors-anywhere.herokuapp.com/';
-const parser = new DOMParser();
+const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
 
 const switchStateTo = (state, stateName, message = 'Add RSS feed URL') => {
   state.message = message; // eslint-disable-line no-param-reassign
   state.input.state = inputStates[stateName]; // eslint-disable-line no-param-reassign
 };
 
-const validate = (state, url) => {
-  if (!url) {
+const validateUserData = (state, data) => {
+  if (!data) {
     switchStateTo(state, inputStates.pending);
-  } else if (isUrlValid(url, state.feeds)) {
-    switchStateTo(state, inputStates.valid, 'Ok, let\'s try!');
-  } else {
+  } else if (!isURL(data)) {
     switchStateTo(state, inputStates.invalid, 'Link must be valid URL');
+  } else if (state.feedsTitles.has(data)) {
+    switchStateTo(state, inputStates.invalid, 'You are already subscribed to this feed');
+  } else {
+    switchStateTo(state, inputStates.valid, 'Ok, let\'s try!');
   }
 };
 
-const rssDataHandler = (rssData, state, url) => {
-  if (!rssData.querySelector('rss')) {
+const addFeedTitle = (state, rssData, url) => {
+  if (!rssData.querySelector('channel')) {
     throw new Error('This source contains no RSS-feed');
   }
   const title = rssData.querySelector('title').textContent;
-  const articles = [];
-  const articlesData = rssData.querySelectorAll('item');
-  articlesData.forEach((data) => {
-    const articleTitle = data.querySelector('title').textContent;
-    const articleLink = data.querySelector('link').textContent;
-    const articleContent = data.querySelector('description').textContent;
-    articles.push({
-      articleTitle, articleLink, articleContent, id: uniqueId('article'),
-    });
-  });
-  state.feeds.push({ url, title, articles });
+  state.feedsTitles.set(url, title);
 };
 
-export const addFeed = (proxy, url, state) => new Promise(resolve => resolve(switchStateTo(state, inputStates.loading, 'Please wait...')))
-  .then(() => axios.get(`${proxy}${url}`))
-  .then(
-    response => parser.parseFromString(response.data, 'application/xml'),
-    () => {
-      throw new Error('Server is not responding. It may be dead, as well as your connection');
-    },
-  )
-  .then((rssData) => {
-    rssDataHandler(rssData, state, url);
-    switchStateTo(state, inputStates.pending);
-  })
-  .catch((error) => {
-    switchStateTo(state, inputStates.failed, error);
+const addArticles = (state, rssData) => {
+  const articles = rssData.querySelectorAll('item');
+  articles.forEach((data) => {
+    const title = data.querySelector('title').textContent;
+    const link = data.querySelector('link').textContent || uniqueId('#');
+    const content = data.querySelector('description').textContent;
+    state.articlesTitles.set(link, title);
+    state.articlesDescriptions.set(link, content);
+    const articleId = uniqueId('article-');
+    state.articlesIDs.set(link, articleId);
+    state.articlesLinks.set(articleId, link);
+    state.watcherTriggers.push(link);
   });
+};
+
+const addNewFeed = (state, url, proxy) => {
+  switchStateTo(state, inputStates.loading, 'Please wait...');
+  return axios.get(`${proxy}${url}`)
+    .then((response) => {
+      const rss = parse(response.data, 'application/xml');
+      addFeedTitle(state, rss, url);
+      addArticles(state, rss);
+      switchStateTo(state, inputStates.pending);
+    })
+    .catch((error) => {
+      switchStateTo(state, inputStates.failed, error);
+    });
+};
 
 export const initControllers = (state) => {
   const input = document.getElementById('rss-url');
   const submit = document.getElementById('submit-button');
 
   input.addEventListener('input', (e) => {
-    validate(state, e.target.value);
+    const url = e.target.value;
+    validateUserData(state, url);
   });
 
   submit.addEventListener('click', (e) => {
     e.preventDefault();
-    addFeed(CORSproxy, input.value, state);
+    const url = input.value;
+    addNewFeed(state, url, CORS_PROXY);
   });
 };
 
@@ -74,13 +81,12 @@ export const initArticlesButtonsControllers = (state) => {
   articleButtons.forEach((button) => {
     button.addEventListener('click', (e) => {
       e.preventDefault();
-      console.dir(e.target);
       const articleId = e.target.dataset.id;
-      const article = state.feeds
-        .reduce((acc, feed) => [...acc, ...feed.articles], [])
-        .filter(item => item.id === articleId)[0];
-      state.modal.title = article.articleTitle; // eslint-disable-line no-param-reassign
-      state.modal.content = article.articleContent; // eslint-disable-line no-param-reassign
+      const articleLink = state.articlesLinks.get(articleId);
+      // eslint-disable-next-line no-param-reassign
+      state.modalTitle.title = state.articlesTitles.get(articleLink);
+      // eslint-disable-next-line no-param-reassign
+      state.modalContent.content = state.articlesDescriptions.get(articleLink);
     });
   });
 };

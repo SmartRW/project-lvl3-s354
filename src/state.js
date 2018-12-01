@@ -6,15 +6,15 @@ export const inputStates = {
   failed: 'failed',
 };
 
-function State() {
-  this.inputStates = inputStates;
-  this.input = { state: this.inputStates.pending };
-  this.message = 'Add RSS feed URL';
-  this.feeds = [];
-  this.modal = {
-    title: '',
-    content: '',
-  };
-}
-
-export const initState = () => new State();
+export const initState = () => ({
+  input: { state: inputStates.pending },
+  message: 'Add RSS feed URL',
+  watcherTriggers: [],
+  feedsTitles: new Map(),
+  articlesTitles: new Map(),
+  articlesLinks: new Map(),
+  articlesDescriptions: new Map(),
+  articlesIDs: new Map(),
+  modalTitle: { title: '' },
+  modalContent: { content: '' },
+});

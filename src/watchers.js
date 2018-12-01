@@ -1,7 +1,7 @@
 import { watch } from 'melanke-watchjs';
 import {
   renderForm,
-  renderTitles,
+  renderFeedsTitles,
   renderArticles,
   renderModal,
 } from './renderer';
@@ -12,13 +12,14 @@ export default (state) => {
     renderForm(state);
   });
 
-  watch(state.feeds, () => {
-    renderTitles(state);
+  watch(state.watcherTriggers, () => {
+    renderFeedsTitles(state);
     renderArticles(state);
     initArticlesButtonsControllers(state);
+    console.dir(state);
   });
 
-  watch(state.modal, () => {
+  watch(state.modalTitle, () => {
     renderModal(state);
   });
 };
