@@ -36,7 +36,8 @@ const loadFeed = (state, url, proxy) => axios.get(`${proxy}${url}`)
     if (!state.feedsTitles.has(url)) {
       state.feedsTitles.set(url, feedTitle);
     }
-  });
+  })
+  .catch(e => console.error(e));
 
 export const initControllers = (state) => {
   const input = document.getElementById('rss-url');
