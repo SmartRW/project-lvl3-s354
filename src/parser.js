@@ -6,7 +6,8 @@ export default (data, dataType) => {
   if (!rssData.querySelector('channel')) {
     throw new Error('This source contains no RSS-feed');
   }
-  const feedTitle = rssData.querySelector('title').textContent;
+  const feedTitleData = rssData.querySelector('title');
+  const feedTitle = feedTitleData ? feedTitleData.textContent : 'Title';
   const articlesElements = [...rssData.querySelectorAll('item')];
   const articles = articlesElements
     .map((article) => {
