@@ -39,34 +39,29 @@ const getFeedData = (rssData) => {
   return { feedTitle, articles };
 };
 
-const addNewFeed = (state, url, proxy) => {
-  switchStateTo(state, inputStates.loading, 'Please wait...');
-  return axios.get(`${proxy}${url}`)
-    .then((response) => {
-      const rss = parse(response.data, 'application/xml');
-      if (!rss.querySelector('channel')) {
-        throw new Error('This source contains no RSS-feed');
+const addNewFeed = (state, url, proxy) => axios.get(`${proxy}${url}`)
+  .then((response) => {
+    const rss = parse(response.data, 'application/xml');
+    if (!rss.querySelector('channel')) {
+      throw new Error('This source contains no RSS-feed');
+    }
+    const { feedTitle, articles } = getFeedData(rss);
+    articles.forEach((article) => {
+      const {
+        link, articleTitle, content, articleId,
+      } = article;
+      if (!state.articlesLinks.has(link)) {
+        state.articlesTitles.set(link, articleTitle);
+        state.articlesDescriptions.set(link, content);
+        state.articlesIDs.set(link, articleId);
+        state.articlesLinks.set(articleId, link);
+        state.watcherTriggers.push(link);
       }
-      const { feedTitle, articles } = getFeedData(rss);
-      articles.forEach((article) => {
-        const {
-          link, articleTitle, content, articleId,
-        } = article;
-        if (!state.articlesLinks.has(link)) {
-          state.articlesTitles.set(link, articleTitle);
-          state.articlesDescriptions.set(link, content);
-          state.articlesIDs.set(link, articleId);
-          state.articlesLinks.set(articleId, link);
-          state.watcherTriggers.push(link);
-        }
-      });
-      state.feedsTitles.set(url, feedTitle);
-      switchStateTo(state, inputStates.pending);
-    })
-    .catch((error) => {
-      switchStateTo(state, inputStates.failed, error);
     });
-};
+    if (!state.articlesLinks.has(url)) {
+      state.feedsTitles.set(url, feedTitle);
+    }
+  });
 
 export const initControllers = (state) => {
   const input = document.getElementById('rss-url');
@@ -79,8 +74,13 @@ export const initControllers = (state) => {
 
   submit.addEventListener('click', (e) => {
     e.preventDefault();
+    switchStateTo(state, inputStates.loading, 'Please wait...');
     const url = input.value;
-    addNewFeed(state, url, CORS_PROXY);
+    addNewFeed(state, url, CORS_PROXY)
+      .catch((error) => {
+        switchStateTo(state, inputStates.failed, error);
+      });
+    switchStateTo(state, inputStates.pending);
   });
 };
 
