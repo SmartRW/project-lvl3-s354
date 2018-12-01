@@ -4,6 +4,7 @@ import { inputStates } from './state';
 import parse from './parser';
 
 const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
+const UPDATE_INTERVAL = 5000;
 
 const switchStateTo = (state, stateName, message = 'Add RSS feed URL') => {
   state.message = message; // eslint-disable-line no-param-reassign
@@ -22,14 +23,14 @@ const validateUserData = (state, data) => {
   }
 };
 
-const addNewFeed = (state, url, proxy) => axios.get(`${proxy}${url}`)
+const loadFeed = (state, url, proxy) => axios.get(`${proxy}${url}`)
   .then((response) => {
     const { feedTitle, articles } = parse(response.data, 'application/xml');
     articles.forEach((article) => {
       const { link } = article;
       if (!state.articles.has(link)) {
         state.articles.set(link, article);
-        state.watcherTriggers.push(link);
+        state.watcherTriggers.push(url);
       }
     });
     if (!state.feedsTitles.has(url)) {
@@ -50,7 +51,7 @@ export const initControllers = (state) => {
     e.preventDefault();
     switchStateTo(state, inputStates.loading, 'Please wait...');
     const url = input.value;
-    addNewFeed(state, url, CORS_PROXY)
+    loadFeed(state, url, CORS_PROXY)
       .then(() => {
         switchStateTo(state, inputStates.pending);
       })
@@ -60,9 +61,16 @@ export const initControllers = (state) => {
   });
 };
 
-// const reload = (state) => {
-//   window.setTimeout();
-// };
+const reload = (state, proxy, timeout) => {
+  const promises = [...state.feedsTitles.keys()].map(url => loadFeed(state, url, proxy));
+  window.setTimeout(() => {
+    Promise.all(promises)
+      .then(() => reload(state, proxy, timeout))
+      .catch(e => console.error(e));
+  }, timeout);
+};
+
+export const initReload = state => reload(state, CORS_PROXY, UPDATE_INTERVAL);
 
 export const initArticlesButtonsControllers = (state) => {
   const articleButtons = document.querySelectorAll('button[data-toggle="modal"]');
