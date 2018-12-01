@@ -18,7 +18,7 @@ export default (state) => {
     initArticlesButtonsControllers(state);
   });
 
-  watch(state.modalTitle, () => {
+  watch(state.modal, () => {
     renderModal(state);
   });
 };

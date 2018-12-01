@@ -11,10 +11,9 @@ export const initState = () => ({
   message: 'Add RSS feed URL',
   watcherTriggers: [],
   feedsTitles: new Map(),
-  articlesTitles: new Map(),
-  articlesLinks: new Map(),
-  articlesDescriptions: new Map(),
-  articlesIDs: new Map(),
-  modalTitle: { title: '' },
-  modalContent: { content: '' },
+  articles: new Map(),
+  modal: {
+    title: '',
+    content: '',
+  },
 });

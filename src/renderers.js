@@ -70,19 +70,18 @@ export const renderArticles = (state) => {
   const articlesList = articlesContainer.querySelector('ul');
   const articleTemplate = document.getElementById('article-template').content;
   articlesList.innerHTML = '';
-  const articlesIDs = [...state.articlesIDs.values()].reverse();
-  articlesIDs.forEach((id) => {
+  const articles = [...state.articles.values()].reverse();
+  articles.forEach((article) => {
     const node = articleTemplate.cloneNode(true);
     const url = node.querySelector('.article-link');
     const title = node.querySelector('.card-title');
     const button = node.querySelector('button[data-toggle="modal"]');
-    const link = state.articlesLinks.get(id);
-    url.href = link;
-    title.textContent = state.articlesTitles.get(link);
-    button.dataset.id = state.articlesIDs.get(link);
+    url.href = article.link;
+    title.textContent = state.articles.get(article.link).content;
+    button.dataset.id = article.link;
     articlesList.appendChild(node);
   });
-  if (state.articlesTitles.size > 0) {
+  if (state.articles.size > 0) {
     articlesContainer.classList.remove('invisible');
   }
 };
@@ -90,6 +89,6 @@ export const renderArticles = (state) => {
 export const renderModal = (state) => {
   const title = document.getElementById('modal-title');
   const content = document.getElementById('modal-body');
-  title.textContent = state.modalTitle.title;
-  content.textContent = state.modalContent.content;
+  title.textContent = state.modal.title;
+  content.textContent = state.modal.content;
 };

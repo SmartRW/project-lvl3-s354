@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { uniqueId } from 'lodash';
 import isURL from 'validator/lib/isURL';
 import { inputStates } from './state';
 import parse from './parser';
@@ -23,78 +22,58 @@ const validateUserData = (state, data) => {
   }
 };
 
-const getFeedData = (rssData) => {
-  const feedTitle = rssData.querySelector('title').textContent;
-  const articlesElements = [...rssData.querySelectorAll('item')];
-  const articles = articlesElements
-    .map((article) => {
-      const link = article.querySelector('link').textContent || uniqueId('#');
-      const articleTitle = article.querySelector('title').textContent;
-      const content = article.querySelector('description').textContent;
-      const articleId = uniqueId('article-');
-      return {
-        link, articleTitle, content, articleId,
-      };
-    });
-  return { feedTitle, articles };
-};
-
 const addNewFeed = (state, url, proxy) => axios.get(`${proxy}${url}`)
   .then((response) => {
-    const rss = parse(response.data, 'application/xml');
-    if (!rss.querySelector('channel')) {
-      throw new Error('This source contains no RSS-feed');
-    }
-    const { feedTitle, articles } = getFeedData(rss);
+    const { feedTitle, articles } = parse(response.data, 'application/xml');
     articles.forEach((article) => {
-      const {
-        link, articleTitle, content, articleId,
-      } = article;
-      if (!state.articlesLinks.has(link)) {
-        state.articlesTitles.set(link, articleTitle);
-        state.articlesDescriptions.set(link, content);
-        state.articlesIDs.set(link, articleId);
-        state.articlesLinks.set(articleId, link);
+      const { link } = article;
+      if (!state.articles.has(link)) {
+        state.articles.set(link, article);
         state.watcherTriggers.push(link);
       }
     });
-    if (!state.articlesLinks.has(url)) {
+    if (!state.feedsTitles.has(url)) {
       state.feedsTitles.set(url, feedTitle);
     }
   });
 
 export const initControllers = (state) => {
   const input = document.getElementById('rss-url');
-  const submit = document.getElementById('submit-button');
+  const form = document.getElementById('form');
 
   input.addEventListener('input', (e) => {
     const url = e.target.value;
     validateUserData(state, url);
   });
 
-  submit.addEventListener('click', (e) => {
+  form.addEventListener('submit', (e) => {
     e.preventDefault();
     switchStateTo(state, inputStates.loading, 'Please wait...');
     const url = input.value;
     addNewFeed(state, url, CORS_PROXY)
+      .then(() => {
+        switchStateTo(state, inputStates.pending);
+      })
       .catch((error) => {
         switchStateTo(state, inputStates.failed, error);
       });
-    switchStateTo(state, inputStates.pending);
   });
 };
+
+// const reload = (state) => {
+//   window.setTimeout();
+// };
 
 export const initArticlesButtonsControllers = (state) => {
   const articleButtons = document.querySelectorAll('button[data-toggle="modal"]');
   articleButtons.forEach((button) => {
     button.addEventListener('click', (e) => {
       e.preventDefault();
-      const articleId = e.target.dataset.id;
-      const articleLink = state.articlesLinks.get(articleId);
+      const article = state.articles.get(e.target.dataset.id);
       // eslint-disable-next-line no-param-reassign
-      state.modalTitle.title = state.articlesTitles.get(articleLink);
+      state.modal.title = article.articleTitle;
       // eslint-disable-next-line no-param-reassign
-      state.modalContent.content = state.articlesDescriptions.get(articleLink);
+      state.modal.content = article.content;
     });
   });
 };
