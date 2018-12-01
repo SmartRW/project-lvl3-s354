@@ -4,7 +4,7 @@ import {
   renderFeedsTitles,
   renderArticles,
   renderModal,
-} from './renderer';
+} from './renderers';
 import { initArticlesButtonsControllers } from './controllers';
 
 export default (state) => {

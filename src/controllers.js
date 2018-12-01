@@ -23,27 +23,20 @@ const validateUserData = (state, data) => {
   }
 };
 
-const addFeedTitle = (state, rssData, url) => {
-  if (!rssData.querySelector('channel')) {
-    throw new Error('This source contains no RSS-feed');
-  }
-  const title = rssData.querySelector('title').textContent;
-  state.feedsTitles.set(url, title);
-};
-
-const addArticles = (state, rssData) => {
-  const articles = rssData.querySelectorAll('item');
-  articles.forEach((data) => {
-    const title = data.querySelector('title').textContent;
-    const link = data.querySelector('link').textContent || uniqueId('#');
-    const content = data.querySelector('description').textContent;
-    state.articlesTitles.set(link, title);
-    state.articlesDescriptions.set(link, content);
-    const articleId = uniqueId('article-');
-    state.articlesIDs.set(link, articleId);
-    state.articlesLinks.set(articleId, link);
-    state.watcherTriggers.push(link);
-  });
+const getFeedData = (rssData) => {
+  const feedTitle = rssData.querySelector('title').textContent;
+  const articlesElements = [...rssData.querySelectorAll('item')];
+  const articles = articlesElements
+    .map((article) => {
+      const link = article.querySelector('link').textContent || uniqueId('#');
+      const articleTitle = article.querySelector('title').textContent;
+      const content = article.querySelector('description').textContent;
+      const articleId = uniqueId('article-');
+      return {
+        link, articleTitle, content, articleId,
+      };
+    });
+  return { feedTitle, articles };
 };
 
 const addNewFeed = (state, url, proxy) => {
@@ -51,8 +44,23 @@ const addNewFeed = (state, url, proxy) => {
   return axios.get(`${proxy}${url}`)
     .then((response) => {
       const rss = parse(response.data, 'application/xml');
-      addFeedTitle(state, rss, url);
-      addArticles(state, rss);
+      if (!rss.querySelector('channel')) {
+        throw new Error('This source contains no RSS-feed');
+      }
+      const { feedTitle, articles } = getFeedData(rss);
+      articles.forEach((article) => {
+        const {
+          link, articleTitle, content, articleId,
+        } = article;
+        if (!state.articlesLinks.has(link)) {
+          state.articlesTitles.set(link, articleTitle);
+          state.articlesDescriptions.set(link, content);
+          state.articlesIDs.set(link, articleId);
+          state.articlesLinks.set(articleId, link);
+          state.watcherTriggers.push(link);
+        }
+      });
+      state.feedsTitles.set(url, feedTitle);
       switchStateTo(state, inputStates.pending);
     })
     .catch((error) => {
