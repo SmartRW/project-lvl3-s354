@@ -4,4 +4,4 @@
 
 [![Build Status](https://travis-ci.org/SmartRW/project-lvl3-s354.svg?branch=master)](https://travis-ci.org/SmartRW/project-lvl3-s354)
 
-http://petite-touch.surge.sh
+http://ludicrous-coach.surge.sh
