@@ -1,62 +1,50 @@
-const defineRenderTargets = () => {
-  const input = document.getElementById('rss-url');
-  const submit = document.getElementById('submit-button');
-  return { submit, input };
-};
+const getInputElement = () => document.getElementById('rss-url');
+const getSubmitElement = () => document.getElementById('submit-button');
 
-const renderValidForm = () => {
-  const { input, submit } = defineRenderTargets();
-  input.classList.remove('is-invalid');
-  input.classList.add('is-valid');
-  input.disabled = false;
-  submit.disabled = false;
+/* eslint-disable no-param-reassign */
+const renderFormActions = {
+  valid: (input, submit) => {
+    input.classList.remove('is-invalid');
+    input.classList.add('is-valid');
+    input.disabled = false;
+    submit.disabled = false;
+  },
+  invalid: (input, submit) => {
+    input.classList.remove('is-valid');
+    input.classList.add('is-invalid');
+    input.disabled = false;
+    submit.disabled = true;
+  },
+  loading: (input, submit) => {
+    input.classList.remove('is-invalid');
+    input.classList.remove('is-valid');
+    input.disabled = true;
+    submit.disabled = true;
+  },
+  failed: (input, submit) => {
+    input.classList.remove('is-valid');
+    input.classList.add('is-invalid');
+    input.disabled = false;
+    submit.disabled = false;
+  },
+  pending: (input, submit) => {
+    input.classList.remove('is-invalid');
+    input.classList.remove('is-valid');
+    input.value = '';
+    input.disabled = false;
+    submit.disabled = true;
+  },
 };
+/* eslint-enable no-param-reassign */
 
-const renderInvalidForm = () => {
-  const { input, submit } = defineRenderTargets();
-  input.classList.remove('is-valid');
-  input.classList.add('is-invalid');
-  input.disabled = false;
-  submit.disabled = true;
-};
-
-const renderLoadingForm = () => {
-  const { input, submit } = defineRenderTargets();
-  input.classList.remove('is-invalid');
-  input.classList.remove('is-valid');
-  input.disabled = true;
-  submit.disabled = true;
-};
-
-const renderFailedForm = () => {
-  const { input, submit } = defineRenderTargets();
-  input.classList.remove('is-valid');
-  input.classList.add('is-invalid');
-  input.disabled = false;
-  submit.disabled = false;
-};
-
-const renderPendingForm = () => {
-  const { input, submit } = defineRenderTargets();
-  input.classList.remove('is-invalid');
-  input.classList.remove('is-valid');
-  input.value = '';
-  input.disabled = false;
-  submit.disabled = true;
-};
-
-const getRenderFormAction = () => ({
-  valid: renderValidForm,
-  invalid: renderInvalidForm,
-  loading: renderLoadingForm,
-  failed: renderFailedForm,
-  pending: renderPendingForm,
-});
+const getRenderFormAction = stateType => renderFormActions[stateType];
 
 export const renderForm = (state) => {
   const stateType = state.input.state;
   const message = document.getElementById('input-message');
-  getRenderFormAction()[stateType]();
+  const input = getInputElement();
+  const submit = getSubmitElement();
+  getRenderFormAction(stateType)(input, submit);
   message.textContent = state.message;
 };
 
@@ -65,7 +53,7 @@ export const renderFeedsTitles = (state) => {
   const titlesList = titlesContainer.querySelector('ul');
   const titleTemplate = document.getElementById('feed-template').content;
   titlesList.innerHTML = '';
-  const titles = [...state.feedsTitles.values()];
+  const titles = [...state.feedsTitles.values()].reverse();
   titles.forEach((title) => {
     const node = titleTemplate.cloneNode(true);
     const listItem = node.querySelector('li');
@@ -82,7 +70,7 @@ export const renderArticles = (state) => {
   const articlesList = articlesContainer.querySelector('ul');
   const articleTemplate = document.getElementById('article-template').content;
   articlesList.innerHTML = '';
-  const articlesIDs = [...state.articlesIDs.values()];
+  const articlesIDs = [...state.articlesIDs.values()].reverse();
   articlesIDs.forEach((id) => {
     const node = articleTemplate.cloneNode(true);
     const url = node.querySelector('.article-link');
@@ -90,8 +78,6 @@ export const renderArticles = (state) => {
     const button = node.querySelector('button[data-toggle="modal"]');
     const link = state.articlesLinks.get(id);
     url.href = link;
-    console.log(link);
-    console.log(state.articlesTitles.get(link));
     title.textContent = state.articlesTitles.get(link);
     button.dataset.id = state.articlesIDs.get(link);
     articlesList.appendChild(node);

@@ -16,7 +16,6 @@ export default (state) => {
     renderFeedsTitles(state);
     renderArticles(state);
     initArticlesButtonsControllers(state);
-    console.dir(state);
   });
 
   watch(state.modalTitle, () => {
