@@ -7,7 +7,7 @@ export default (data, dataType) => {
     throw new Error('This source contains no RSS-feed');
   }
   const feedTitleData = rssData.querySelector('title');
-  const feedTitle = feedTitleData ? feedTitleData.textContent : 'Title';
+  const feedTitle = feedTitleData ? feedTitleData.textContent : '';
   const articlesElements = [...rssData.querySelectorAll('item')];
   const articles = articlesElements
     .map((article) => {
@@ -19,10 +19,10 @@ export default (data, dataType) => {
         : uniqueId('#');
       const articleTitle = articleTitleNode
         ? articleTitleNode.textContent
-        : 'Title';
+        : '';
       const content = contentNode
         ? contentNode.textContent
-        : 'This article has no description';
+        : '';
       return { link, articleTitle, content };
     });
   return { feedTitle, articles };

@@ -53,15 +53,21 @@ export const renderFeedsTitles = (state) => {
   const titlesList = titlesContainer.querySelector('ul');
   const titleTemplate = document.getElementById('feed-template').content;
   titlesList.innerHTML = '';
-  const titles = [...state.feedsTitles.values()].reverse();
-  titles.forEach((title) => {
+  const feeds = [...state.feedsTitles.values()].reverse();
+  feeds.forEach((feed) => {
     const node = titleTemplate.cloneNode(true);
-    const listItem = node.querySelector('li');
-    listItem.textContent = title;
+    const listItem = node.querySelector('.list-group-item h4');
+    const articleCounter = node.querySelector('.badge');
+    const button = node.querySelector('.unsubscribe');
+    button.dataset.id = feed.url;
+    listItem.textContent = feed.feedTitle;
+    articleCounter.textContent = feed.articlesUrls.length;
     titlesList.appendChild(node);
   });
   if (state.feedsTitles.size > 0) {
     titlesContainer.classList.remove('invisible');
+  } else {
+    titlesContainer.classList.add('invisible');
   }
 };
 
@@ -77,12 +83,14 @@ export const renderArticles = (state) => {
     const title = node.querySelector('.card-title');
     const button = node.querySelector('button[data-toggle="modal"]');
     url.href = article.link;
-    title.textContent = state.articles.get(article.link).content;
+    title.textContent = state.articles.get(article.link).articleTitle;
     button.dataset.id = article.link;
     articlesList.appendChild(node);
   });
   if (state.articles.size > 0) {
     articlesContainer.classList.remove('invisible');
+  } else {
+    articlesContainer.classList.add('invisible');
   }
 };
 

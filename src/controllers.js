@@ -26,16 +26,18 @@ const validateUserData = (state, data) => {
 const loadFeed = (state, url, proxy) => axios.get(`${proxy}${url}`)
   .then((response) => {
     const { feedTitle, articles } = parse(response.data, 'application/xml');
+    const articlesUrls = state.feedsTitles.has(url)
+      ? state.feedsTitles.get(url).articlesUrls
+      : [];
     articles.forEach((article) => {
       const { link } = article;
       if (!state.articles.has(link)) {
         state.articles.set(link, article);
         state.watcherTriggers.push(url);
+        articlesUrls.push(link);
       }
     });
-    if (!state.feedsTitles.has(url)) {
-      state.feedsTitles.set(url, feedTitle);
-    }
+    state.feedsTitles.set(url, { feedTitle, articlesUrls, url });
   });
 
 export const initControllers = (state) => {
@@ -82,6 +84,20 @@ export const initArticlesButtonsControllers = (state) => {
       state.modal.title = article.articleTitle;
       // eslint-disable-next-line no-param-reassign
       state.modal.content = article.content;
+    });
+  });
+};
+
+export const initUnsubscribeButtonsControllers = (state) => {
+  const unsubscribeButtons = document.querySelectorAll('.unsubscribe');
+  unsubscribeButtons.forEach((button) => {
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      const url = (e.target.dataset.id);
+      const { articlesUrls } = state.feedsTitles.get(url);
+      articlesUrls.forEach(articleUrl => state.articles.delete(articleUrl));
+      state.feedsTitles.delete(url);
+      state.watcherTriggers.push(url);
     });
   });
 };
