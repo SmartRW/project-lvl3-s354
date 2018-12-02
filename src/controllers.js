@@ -65,8 +65,8 @@ const reload = (state, proxy, timeout) => {
   const promises = [...state.feedsTitles.keys()].map(url => loadFeed(state, url, proxy));
   window.setTimeout(() => {
     Promise.all(promises)
-      .then(() => reload(state, proxy, timeout))
-      .catch(e => console.error(e));
+      .catch(e => console.error(e))
+      .then(() => reload(state, proxy, timeout));
   }, timeout);
 };
 
