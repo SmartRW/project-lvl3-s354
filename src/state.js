@@ -16,4 +16,9 @@ export const initState = () => ({
     title: '',
     content: '',
   },
+  isBeingUpdated: false,
+  unsubscribedWhileUpdating: {
+    feedsTitles: [],
+    articles: [],
+  },
 });

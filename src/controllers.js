@@ -23,22 +23,32 @@ const validateUserData = (state, data) => {
   }
 };
 
-const loadFeed = (state, url, proxy) => axios.get(`${proxy}${url}`)
-  .then((response) => {
-    const { feedTitle, articles } = parse(response.data, 'application/xml');
-    const articlesUrls = state.feedsTitles.has(url)
-      ? state.feedsTitles.get(url).articlesUrls
-      : [];
-    articles.forEach((article) => {
-      const { link } = article;
-      if (!state.articles.has(link)) {
-        state.articles.set(link, article);
-        state.watcherTriggers.push(url);
-        articlesUrls.push(link);
+const loadFeed = (state, url, proxy) => {
+  // eslint-disable-next-line no-param-reassign
+  state.isBeingUpdated = true;
+  return axios.get(`${proxy}${url}`)
+    .then((response) => {
+      const { feedTitle, articles } = parse(response.data, 'application/xml');
+      const articlesUrls = state.feedsTitles.has(url)
+        ? state.feedsTitles.get(url).articlesUrls
+        : [];
+      articles.forEach((article) => {
+        const { link } = article;
+        if (!state.articles.has(link)
+        && !state.unsubscribedWhileUpdating.articles.includes(link)
+        && !state.unsubscribedWhileUpdating.feedsTitles.includes(url)) {
+          state.articles.set(link, article);
+          articlesUrls.push(link);
+          state.watcherTriggers.push(url);
+        }
+      });
+      if (!state.unsubscribedWhileUpdating.feedsTitles.includes(url)) {
+        state.feedsTitles.set(url, { feedTitle, articlesUrls, url });
       }
+      // eslint-disable-next-line no-param-reassign
+      state.isBeingUpdated = false;
     });
-    state.feedsTitles.set(url, { feedTitle, articlesUrls, url });
-  });
+};
 
 export const initControllers = (state) => {
   const input = document.getElementById('rss-url');
@@ -64,6 +74,7 @@ export const initControllers = (state) => {
 };
 
 const reload = (state, proxy, timeout) => {
+  console.log('reloading...');
   const promises = [...state.feedsTitles.keys()].map(url => loadFeed(state, url, proxy));
   window.setTimeout(() => {
     Promise.all(promises)
@@ -93,9 +104,21 @@ export const initUnsubscribeButtonsControllers = (state) => {
   unsubscribeButtons.forEach((button) => {
     button.addEventListener('click', (e) => {
       e.preventDefault();
-      const url = (e.target.dataset.id);
+      const url = e.target.dataset.id;
       const { articlesUrls } = state.feedsTitles.get(url);
-      articlesUrls.forEach(articleUrl => state.articles.delete(articleUrl));
+      // eslint-disable-next-line no-param-reassign
+      state.unsubscribedWhileUpdating.articles = [];
+      // eslint-disable-next-line no-param-reassign
+      state.unsubscribedWhileUpdating.feedsTitles = [];
+      articlesUrls.forEach((articleUrl) => {
+        if (state.isBeingUpdated) {
+          state.unsubscribedWhileUpdating.articles.push(articleUrl);
+        }
+        state.articles.delete(articleUrl);
+      });
+      if (state.isBeingUpdated) {
+        state.unsubscribedWhileUpdating.feedsTitles.push(url);
+      }
       state.feedsTitles.delete(url);
       state.watcherTriggers.push(url);
     });
