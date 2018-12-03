@@ -63,6 +63,10 @@ export const initControllers = (state) => {
     e.preventDefault();
     // eslint-disable-next-line no-param-reassign
     switchStateTo(state, inputStates.loading, 'Please wait...');
+    // eslint-disable-next-line no-param-reassign
+    state.unsubscribedWhileUpdating.articles = [];
+    // eslint-disable-next-line no-param-reassign
+    state.unsubscribedWhileUpdating.feedsTitles = [];
     const url = input.value;
     loadFeed(state, url, CORS_PROXY)
       .then(() => {
@@ -109,19 +113,16 @@ export const initUnsubscribeButtonsControllers = (state) => {
       e.preventDefault();
       const url = e.target.dataset.id;
       const { articlesUrls } = state.feedsTitles.get(url);
-      // eslint-disable-next-line no-param-reassign
-      state.unsubscribedWhileUpdating.articles = [];
-      // eslint-disable-next-line no-param-reassign
-      state.unsubscribedWhileUpdating.feedsTitles = [];
-      articlesUrls.forEach((articleUrl) => {
-        if (state.isBeingUpdated) {
+      if (state.isBeingUpdated) {
+        console.log('updating!');
+        state.unsubscribedWhileUpdating.feedsTitles.push(url);
+        articlesUrls.forEach((articleUrl) => {
           state.unsubscribedWhileUpdating.articles.push(articleUrl);
-        }
+        });
+      }
+      articlesUrls.forEach((articleUrl) => {
         state.articles.delete(articleUrl);
       });
-      if (state.isBeingUpdated) {
-        state.unsubscribedWhileUpdating.feedsTitles.push(url);
-      }
       state.feedsTitles.delete(url);
       state.watcherTriggers.push(url);
     });
