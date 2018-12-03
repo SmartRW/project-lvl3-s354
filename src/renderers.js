@@ -1,38 +1,44 @@
 const getInputElement = () => document.getElementById('rss-url');
 const getSubmitElement = () => document.getElementById('submit-button');
+const getPopularButtons = () => document.querySelectorAll('.popular-button');
 
 /* eslint-disable no-param-reassign */
 const renderFormActions = {
-  valid: (input, submit) => {
+  valid: (input, submit, buttons) => {
     input.classList.remove('is-invalid');
     input.classList.add('is-valid');
     input.disabled = false;
     submit.disabled = false;
+    buttons.forEach((button) => { button.disabled = false; });
   },
-  invalid: (input, submit) => {
+  invalid: (input, submit, buttons) => {
     input.classList.remove('is-valid');
     input.classList.add('is-invalid');
     input.disabled = false;
     submit.disabled = true;
+    buttons.forEach((button) => { button.disabled = false; });
   },
-  loading: (input, submit) => {
+  loading: (input, submit, buttons) => {
     input.classList.remove('is-invalid');
     input.classList.remove('is-valid');
     input.disabled = true;
     submit.disabled = true;
+    buttons.forEach((button) => { button.disabled = true; });
   },
-  failed: (input, submit) => {
+  failed: (input, submit, buttons) => {
     input.classList.remove('is-valid');
     input.classList.add('is-invalid');
     input.disabled = false;
     submit.disabled = false;
+    buttons.forEach((button) => { button.disabled = false; });
   },
-  pending: (input, submit) => {
+  pending: (input, submit, buttons) => {
     input.classList.remove('is-invalid');
     input.classList.remove('is-valid');
     input.value = '';
     input.disabled = false;
     submit.disabled = true;
+    buttons.forEach((button) => { button.disabled = false; });
   },
 };
 /* eslint-enable no-param-reassign */
@@ -44,7 +50,8 @@ export const renderForm = (state) => {
   const message = document.getElementById('input-message');
   const input = getInputElement();
   const submit = getSubmitElement();
-  getRenderFormAction(stateType)(input, submit);
+  const buttons = getPopularButtons();
+  getRenderFormAction(stateType)(input, submit, buttons);
   message.textContent = state.message;
 };
 
@@ -97,6 +104,20 @@ export const renderArticles = (state) => {
 export const renderModal = (state) => {
   const title = document.getElementById('modal-title');
   const content = document.getElementById('modal-body');
+  const fullArticleButton = document.querySelector('.full-article');
   title.textContent = state.modal.title;
-  content.textContent = state.modal.content;
+  content.innerHTML = state.modal.content;
+  fullArticleButton.href = state.modal.url;
+};
+
+export const renderPopular = (state) => {
+  const container = document.getElementById('popular');
+  const template = document.getElementById('popular-button-template').content;
+  state.popular.forEach((popularItem) => {
+    const node = template.cloneNode(true);
+    const button = node.querySelector('.popular-button');
+    button.textContent = popularItem.name;
+    button.dataset.popularLink = popularItem.url;
+    container.appendChild(button);
+  });
 };

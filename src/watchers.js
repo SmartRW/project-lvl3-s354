@@ -5,7 +5,7 @@ import {
   renderArticles,
   renderModal,
 } from './renderers';
-import { initArticlesButtonsControllers, initUnsubscribeButtonsControllers } from './controllers';
+import { initOpenModalButtonsControllers, initUnsubscribeButtonsControllers } from './controllers';
 
 export default (state) => {
   watch(state.input, () => {
@@ -15,7 +15,7 @@ export default (state) => {
   watch(state.watcherTriggers, () => {
     renderFeedsTitles(state);
     renderArticles(state);
-    initArticlesButtonsControllers(state);
+    initOpenModalButtonsControllers(state);
     initUnsubscribeButtonsControllers(state);
   });
 

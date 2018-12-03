@@ -5,6 +5,9 @@
     <title>RSS-Reader</title>
   </head>
   <body>
+    <template id="popular-button-template">
+      <button type="button" class="popular-button btn btn-secondary"></button>
+    </template>
     <template id="feed-template">
       <li class="list-group-item">
         <div class="container d-flex justify-content-between align-items-start mb-4 pl-0 pr-0">
@@ -35,14 +38,16 @@
           </div>
           <div class="modal-body" id="modal-body"></div>
           <div class="modal-footer">
-            <a class="btn btn-primary" href="#" role="button">Full article</a>
+            <a class="btn btn-primary full-article" href="#" role="button">Full article</a>
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
           </div>
         </div>
       </div>
     </div>
     <div class="jumbotron">
-      <h1 class="display-4">RSS-Reader</h1>
+      <h1 class="display-4 mb-4">RSS-Reader</h1>
+      <div class="btn-group mb-4" id="popular">
+      </div>
       <form class="form" id="form">
         <div class="form-group">
           <input class="form-control mr-4" id="rss-url" type="text" placeholder="link">
