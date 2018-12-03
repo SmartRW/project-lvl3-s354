@@ -114,7 +114,6 @@ export const initUnsubscribeButtonsControllers = (state) => {
       const url = e.target.dataset.id;
       const { articlesUrls } = state.feedsTitles.get(url);
       if (state.isBeingUpdated) {
-        console.log('updating!');
         state.unsubscribedWhileUpdating.feedsTitles.push(url);
         articlesUrls.forEach((articleUrl) => {
           state.unsubscribedWhileUpdating.articles.push(articleUrl);
